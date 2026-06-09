@@ -1,0 +1,7 @@
+# Build directory
+build/
+
+# Editor and temporary files
+*.swp
+*~
+.DS_Store
