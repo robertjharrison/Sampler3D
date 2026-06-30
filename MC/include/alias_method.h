@@ -34,7 +34,8 @@ public:
      * @param gen The PCG64 random number generator.
      * @return size_t The sampled index.
      */
-    inline size_t sample(PCG64& gen) {
+    template <typename Generator>
+    inline size_t sample(Generator& gen) {
         if (table.empty()) return 0;
 
         // Fast range mapping without modulo: (uint64_t * range) >> 64

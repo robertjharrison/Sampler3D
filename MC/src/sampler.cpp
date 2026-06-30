@@ -1,19 +1,18 @@
 #include "sampler.h"
 #include <cmath>
 
-thread_local PCG64 Sampler3D::gen;
-
-Sampler3D::Sampler3D(const Octree& octree_ref, AliasMethod& alias_ref, std::function<double(double, double, double)> f, pcg_ulong_t inc)
+Sampler3D::Sampler3D(const Octree& octree_ref, AliasMethod& alias_ref, std::function<double(double, double, double)> f, PCG64_OpenMP_Manager& mgr)
     : octree(octree_ref), 
       alias_method(alias_ref),
-      func(f) {
-    // Initialize the thread-local generator with the provided increment
-    gen = PCG64(1, inc);
-    gen.warmup();
+      func(f),
+      rng_manager(mgr) {
 }
 
 Point Sampler3D::sample() {
     total_samples++;
+
+    // Obtain the thread-local stream proxy
+    auto gen = rng_manager.stream();
 
     while (true) {
         total_trials++;

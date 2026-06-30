@@ -42,16 +42,23 @@ cd build
 
 ## Parallel Architecture
 
-The sampler uses a `static thread_local` instance of the PCG64 random number generator. To ensure independent streams, the constructor takes an increment parameter:
+The sampler is designed to run in parallel using OpenMP. Thread-local random number streams are managed by `PCG64_OpenMP_Manager`, which initializes independent, non-correlated PRNG streams (with unique increments `2*tid+1`) for each thread and handles checkpoint/restore capabilities.
 
 ```cpp
-// Inside an OpenMP parallel region:
-int tid = omp_get_thread_num();
-Sampler3D sampler(octree, alias_method, my_func, 2 * tid + 1);
-Point p = sampler.sample();
+// Create the RNG manager outside the parallel region:
+PCG64_OpenMP_Manager rng_manager(1ULL);
+
+#pragma omp parallel
+{
+    // Construct Sampler3D sharing the manager:
+    Sampler3D sampler(octree, alias_method, my_func, rng_manager);
+    
+    // Drawing a sample automatically uses the thread-local stream proxy:
+    Point p = sampler.sample();
+}
 ```
 
-The increment `2*tid+1` ensures that each thread has a distinct, odd sequence increment, providing robust isolation between thread streams without requiring complex seeding strategies.
+The `PCG64_OpenMP_Manager` keeps persistent states for each thread and uses a scope-locked proxy `ThreadStream` that accesses the thread-local state with zero overhead. It also supports serialization, Sseq seeding, and full STL compatibility.
 
 ## Performance & Tuning Defaults
 

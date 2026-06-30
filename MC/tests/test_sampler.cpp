@@ -1,4 +1,5 @@
 #include "sampler.h"
+#include "pcg64_openmp.h"
 #include <iostream>
 #include <cassert>
 #include <cmath>
@@ -20,7 +21,8 @@ int main() {
     }
     AliasMethod alias_method(weights);
 
-    Sampler3D sampler(octree, alias_method, f, 1);
+    PCG64_OpenMP_Manager rng_manager(1ULL);
+    Sampler3D sampler(octree, alias_method, f, rng_manager);
 
     // Generate samples
     const int num_samples = 1000;

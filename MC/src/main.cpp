@@ -1,4 +1,5 @@
 #include "sampler.h"
+#include "pcg64_openmp.h"
 #include <iostream>
 #include <cmath>
 #include <iomanip>
@@ -104,6 +105,8 @@ void run_parallel_study(const std::string& name, std::function<double(double, do
     double total_sum_w2 = 0;
     long long total_trials = 0;
 
+    PCG64_OpenMP_Manager rng_manager(1ULL);
+
     #pragma omp parallel reduction(+:total_sum_w, total_sum_w2, total_trials)
     {
         int tid = omp_get_thread_num();
@@ -111,8 +114,7 @@ void run_parallel_study(const std::string& name, std::function<double(double, do
         long long nsamples_thread = num_samples / nthreads;
         if (tid == nthreads - 1) nsamples_thread += num_samples % nthreads;
 
-        // Correct PRNG initialization: fixed seed (1), unique odd increment (2*tid+1)
-        Sampler3D sampler(octree, alias_method, f, (pcg_ulong_t)(2 * tid + 1));
+        Sampler3D sampler(octree, alias_method, f, rng_manager);
 
         double local_sum_w = 0;
         double local_sum_w2 = 0;

@@ -2,7 +2,7 @@
 
 #include "octree.h"
 #include "alias_method.h"
-#include "pcg64.h"
+#include "pcg64_openmp.h"
 #include <functional>
 
 /**
@@ -23,8 +23,7 @@ public:
     const Octree& octree;                               ///< Reference to the adaptive octree
     AliasMethod& alias_method;                          ///< Reference to the alias method distribution
     std::function<double(double, double, double)> func; ///< Target function to sample
-    
-    static thread_local PCG64 gen;                      ///< Thread-local pseudo-random number generator
+    PCG64_OpenMP_Manager& rng_manager;                  ///< Reference to the OpenMP RNG manager
     
     long long total_trials = 0;                         ///< Number of trials (for efficiency measurement)
     long long total_samples = 0;                        ///< Number of accepted samples
@@ -34,9 +33,9 @@ public:
      * @param octree_ref The constructed Octree.
      * @param alias_ref The constructed AliasMethod table.
      * @param f The 3D function to sample.
-     * @param inc The unique odd stream increment for this thread's PRNG (defaults to 1).
+     * @param mgr The PCG64 OpenMP manager.
      */
-    Sampler3D(const Octree& octree_ref, AliasMethod& alias_ref, std::function<double(double, double, double)> f, pcg_ulong_t inc = 1);
+    Sampler3D(const Octree& octree_ref, AliasMethod& alias_ref, std::function<double(double, double, double)> f, PCG64_OpenMP_Manager& mgr);
 
     /**
      * @brief Draw a single accepted point sample using rejection sampling.

@@ -15,9 +15,9 @@ This project implements a high-performance, parallel algorithm to sample signed 
   - **Zero-Sum Safety**: Gracefully handles zero-probability distributions by defaulting to a uniform sampling scheme.
 - **Parallel Rejection Sampling**:
   - **OpenMP**: Utilizes multi-threading for the sampling loop.
-  - **PRNG Isolation**: Uses `static thread_local` PCG64 generators.
-  - **Increment Protocol**: Each thread uses a fixed seed (1) and a unique odd increment `2*tid+1` to ensure independent, non-correlated random streams.
-  - **Warm-up**: Every generator instance is warmed up (`gen.warmup()`) before first use.
+  - **PRNG Isolation**: Uses `PCG64_OpenMP_Manager` to manage independent, thread-safe streams.
+  - **Increment Protocol**: The manager initializes each thread stream with a fixed seed (1) and a unique odd increment `2*tid+1` to ensure independent, non-correlated random streams, supporting checkpointing and thread-safe dynamic resize.
+  - **Warm-up**: Every generator instance is warmed up (`gen.warmup()`) inside the manager's initialization and resizing blocks.
 
 ## Project Status
 
